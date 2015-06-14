@@ -1,0 +1,22 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Blake Winton",
+    "longName": "PipBoy Watchface",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "PipBoy",
+    "targetPlatforms": [
+        "basalt"
+    ],
+    "uuid": "bb2e3312-6cca-4936-a937-16b1310f52e1",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
