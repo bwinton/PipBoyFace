@@ -76,17 +76,20 @@ static void update_proc(Layer *layer, GContext *ctx) {
   // Color background?
   if(COLORS) {
     graphics_context_set_fill_color(ctx, GColorFromRGB(s_color_channels[0], s_color_channels[1], s_color_channels[2]));
-    graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
+    //graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
   }
 
   graphics_context_set_stroke_color(ctx, GColorBlack);
+  if(COLORS) {
+    graphics_context_set_stroke_color(ctx, GColorIslamicGreen);
+  }
   graphics_context_set_stroke_width(ctx, 4);
 
   graphics_context_set_antialiased(ctx, ANTIALIASING);
 
   // White clockface
   graphics_context_set_fill_color(ctx, GColorWhite);
-  graphics_fill_circle(ctx, s_center, s_radius);
+  //graphics_fill_circle(ctx, s_center, s_radius);
 
   // Draw outline
   graphics_draw_circle(ctx, s_center, s_radius);
@@ -136,8 +139,8 @@ static void window_load(Window *window) {
 
   s_canvas_layer = layer_create(window_bounds);
   layer_set_update_proc(s_canvas_layer, update_proc);
+  layer_add_child(window_layer, bitmap_layer_get_layer(s_pipboy_layer));
   layer_add_child(window_layer, s_canvas_layer);
-  layer_add_child(s_canvas_layer, bitmap_layer_get_layer(s_pipboy_layer));
 }
 
 static void window_unload(Window *window) {
