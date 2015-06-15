@@ -7,7 +7,13 @@
     "longName": "PipBoy Watchface",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/pipboy2.png",
+                "name": "PIPBOY_OUTLINE",
+                "type": "png-trans"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "PipBoy",

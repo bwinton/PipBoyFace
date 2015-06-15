@@ -17,6 +17,9 @@ typedef struct {
 static Window *s_main_window;
 static Layer *s_canvas_layer;
 
+static GBitmap *s_pipboy_bitmap;
+static BitmapLayer *s_pipboy_layer;
+
 static GPoint s_center;
 static Time s_last_time, s_anim_time;
 static int s_radius = 0, s_anim_hours_60 = 0, s_color_channels[3];
@@ -127,12 +130,20 @@ static void window_load(Window *window) {
 
   s_center = grect_center_point(&window_bounds);
 
+  s_pipboy_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PIPBOY_OUTLINE);
+  s_pipboy_layer = bitmap_layer_create(window_bounds);
+  bitmap_layer_set_bitmap(s_pipboy_layer, s_pipboy_bitmap);
+
   s_canvas_layer = layer_create(window_bounds);
   layer_set_update_proc(s_canvas_layer, update_proc);
   layer_add_child(window_layer, s_canvas_layer);
+  layer_add_child(s_canvas_layer, bitmap_layer_get_layer(s_pipboy_layer));
 }
 
 static void window_unload(Window *window) {
+  gbitmap_destroy(s_pipboy_bitmap);
+  bitmap_layer_destroy(s_pipboy_layer);
+  
   layer_destroy(s_canvas_layer);
 }
 
