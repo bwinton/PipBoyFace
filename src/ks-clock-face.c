@@ -6,8 +6,14 @@
 #define HAND_MARGIN  10
 #define FINAL_RADIUS 52
 
+#define MARGIN 10
+#define TEXT_HEIGHT 30
+
 #define ANIMATION_DURATION 500
 #define ANIMATION_DELAY    600
+  
+#define TEXT_MODE 1
+#define CIRCLE_MODE 2
 
 typedef struct {
   int hours;
@@ -17,13 +23,16 @@ typedef struct {
 static Window *s_main_window;
 static Layer *s_canvas_layer;
 
+static GFont s_monofonto_38;
 static GBitmap *s_pipboy_bitmap;
 static BitmapLayer *s_pipboy_layer;
 
 static GPoint s_center;
 static Time s_last_time, s_anim_time;
-static int s_radius = 0, s_anim_hours_60 = 0, s_color_channels[3];
+static int s_radius = 0, s_anim_hours_60 = 0;
 static bool s_animating = false;
+
+static int face_mode = TEXT_MODE;
 
 /*************************** AnimationImplementation **************************/
 
@@ -52,15 +61,41 @@ static void animate(int duration, int delay, AnimationImplementation *implementa
 
 /************************************ UI **************************************/
 
+
+static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+  APP_LOG(APP_LOG_LEVEL_WARNING, "UP ARROW PRESSED!");
+}
+
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  APP_LOG(APP_LOG_LEVEL_WARNING, "SELECT PRESSED!  %d", face_mode);
+  if (face_mode == CIRCLE_MODE) {
+    face_mode = TEXT_MODE;
+  } else {
+    face_mode = TEXT_MODE;
+  }
+  if (s_canvas_layer) {
+    layer_mark_dirty(s_canvas_layer);  
+  }
+}
+
+static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+  APP_LOG(APP_LOG_LEVEL_WARNING, "UP ARROW PRESSED!");
+}
+
+static void click_config_provider(void *context) {
+  // Register the ClickHandlers
+  APP_LOG(APP_LOG_LEVEL_WARNING, "CONFIGURING CLICKS!");
+
+  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+}
+
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   // Store time
   s_last_time.hours = tick_time->tm_hour;
   s_last_time.hours -= (s_last_time.hours > 12) ? 12 : 0;
   s_last_time.minutes = tick_time->tm_min;
-
-  for(int i = 0; i < 3; i++) {
-    s_color_channels[i] = rand() % 256;
-  }
 
   // Redraw
   if(s_canvas_layer) {
@@ -86,24 +121,27 @@ static void draw_background(Layer *layer, GContext *ctx) {
   }
 }
 
-static void update_proc(Layer *layer, GContext *ctx) {
-  // Color background?
-  if(COLORS) {
-    graphics_context_set_fill_color(ctx, GColorFromRGB(s_color_channels[0], s_color_channels[1], s_color_channels[2]));
-    //graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
-  }
+static void text_update_proc(Layer *layer, GContext *ctx) {
+//   GFont font = fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21);
+//   GFont font = fonts_get_system_font(FONT_KEY_LECO_38_BOLD_NUMBERS);
+  GFont font = s_monofonto_38;
+  
 
+  GRect layer_bounds = layer_get_bounds(layer);
+  GRect bounds = GRect(MARGIN, MARGIN/2, layer_bounds.size.w - 2 * MARGIN, TEXT_HEIGHT);
+  char time_buffer[16];
+
+  clock_copy_time_string(time_buffer, sizeof(time_buffer));
+
+  graphics_context_set_text_color(ctx, GColorGreen);
+  graphics_draw_text(ctx, time_buffer, font, bounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+}
+
+static void circle_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_stroke_color(ctx, GColorGreen);
-  if(COLORS) {
-    // graphics_context_set_stroke_color(ctx, GColorIslamicGreen);
-  }
   graphics_context_set_stroke_width(ctx, 4);
 
   graphics_context_set_antialiased(ctx, ANTIALIASING);
-
-  // White clockface
-  graphics_context_set_fill_color(ctx, GColorWhite);
-  //graphics_fill_circle(ctx, s_center, s_radius);
 
   // Draw outline
   graphics_draw_circle(ctx, s_center, s_radius);
@@ -138,6 +176,14 @@ static void update_proc(Layer *layer, GContext *ctx) {
   } 
   if(s_radius > HAND_MARGIN) {
     graphics_draw_line(ctx, s_center, minute_hand);
+  }
+}
+
+static void update_proc(Layer *layer, GContext *ctx) {
+  if (face_mode == CIRCLE_MODE) {
+    circle_update_proc(layer, ctx);
+  } else {
+    text_update_proc(layer, ctx);
   }
 }
 
@@ -195,6 +241,8 @@ static void hands_update(Animation *anim, AnimationProgress dist_normalized) {
 static void init() {
   srand(time(NULL));
 
+  s_monofonto_38 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_38));
+
   time_t t = time(NULL);
   struct tm *time_now = localtime(&t);
   tick_handler(time_now, MINUTE_UNIT);
@@ -204,6 +252,7 @@ static void init() {
     .load = window_load,
     .unload = window_unload,
   });
+  window_set_click_config_provider(s_main_window, click_config_provider);
   window_stack_push(s_main_window, true);
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
@@ -221,6 +270,7 @@ static void init() {
 }
 
 static void deinit() {
+  fonts_unload_custom_font(s_monofonto_38);
   window_destroy(s_main_window);
 }
 
