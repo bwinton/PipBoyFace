@@ -4,7 +4,7 @@
 #define ANTIALIASING true
 
 #define HAND_MARGIN  10
-#define FINAL_RADIUS 55
+#define FINAL_RADIUS 52
 
 #define ANIMATION_DURATION 500
 #define ANIMATION_DELAY    600
@@ -72,6 +72,20 @@ static int hours_to_minutes(int hours_out_of_12) {
   return (int)(float)(((float)hours_out_of_12 / 12.0F) * 60.0F);
 }
 
+static void draw_background(Layer *layer, GContext *ctx) {
+  // Color background?
+  if(COLORS) {
+    graphics_context_set_fill_color(ctx, GColorBlack);
+    graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
+
+    graphics_context_set_stroke_color(ctx, GColorIslamicGreen);
+    graphics_context_set_stroke_width(ctx, 1);
+    for (int i = 0; i < 168; i+=4) {
+      graphics_draw_rect(ctx, GRect(0, i, 144, 2));
+    }
+  }
+}
+
 static void update_proc(Layer *layer, GContext *ctx) {
   // Color background?
   if(COLORS) {
@@ -79,9 +93,9 @@ static void update_proc(Layer *layer, GContext *ctx) {
     //graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
   }
 
-  graphics_context_set_stroke_color(ctx, GColorBlack);
+  graphics_context_set_stroke_color(ctx, GColorGreen);
   if(COLORS) {
-    graphics_context_set_stroke_color(ctx, GColorIslamicGreen);
+    // graphics_context_set_stroke_color(ctx, GColorIslamicGreen);
   }
   graphics_context_set_stroke_width(ctx, 4);
 
@@ -130,12 +144,21 @@ static void update_proc(Layer *layer, GContext *ctx) {
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_bounds(window_layer);
+  GRect image_bounds = GRect(0, 0, 60, 70);
+  grect_align(&image_bounds, &window_bounds, GAlignBottomRight, true);
+  
 
-  s_center = grect_center_point(&window_bounds);
+  // s_center = grect_center_point(&window_bounds);
+  s_center = GPoint(FINAL_RADIUS + HAND_MARGIN, FINAL_RADIUS + HAND_MARGIN);
 
   s_pipboy_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PIPBOY_OUTLINE);
-  s_pipboy_layer = bitmap_layer_create(window_bounds);
+  s_pipboy_layer = bitmap_layer_create(image_bounds);
   bitmap_layer_set_bitmap(s_pipboy_layer, s_pipboy_bitmap);
+  bitmap_layer_set_background_color(s_pipboy_layer, GColorClear);
+  bitmap_layer_set_compositing_mode(s_pipboy_layer, GCompOpSet);
+  bitmap_layer_set_alignment(s_pipboy_layer, GAlignBottomRight);
+
+  layer_set_update_proc(window_layer, draw_background);
 
   s_canvas_layer = layer_create(window_bounds);
   layer_set_update_proc(s_canvas_layer, update_proc);
