@@ -11,7 +11,7 @@
 
 #define ANIMATION_DURATION 500
 #define ANIMATION_DELAY    600
-  
+
 #define TEXT_MODE 1
 #define CIRCLE_MODE 2
 
@@ -74,7 +74,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
     face_mode = TEXT_MODE;
   }
   if (s_canvas_layer) {
-    layer_mark_dirty(s_canvas_layer);  
+    layer_mark_dirty(s_canvas_layer);
   }
 }
 
@@ -116,16 +116,13 @@ static void draw_background(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorIslamicGreen);
     graphics_context_set_stroke_width(ctx, 1);
     for (int i = 0; i < 168; i+=4) {
-      graphics_draw_rect(ctx, GRect(0, i, 144, 2));
+      graphics_draw_rect(ctx, GRect(-1, i, 146, 2));
     }
   }
 }
 
 static void text_update_proc(Layer *layer, GContext *ctx) {
-//   GFont font = fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21);
-//   GFont font = fonts_get_system_font(FONT_KEY_LECO_38_BOLD_NUMBERS);
   GFont font = s_monofonto_38;
-  
 
   GRect layer_bounds = layer_get_bounds(layer);
   GRect bounds = GRect(MARGIN, MARGIN/2, layer_bounds.size.w - 2 * MARGIN, TEXT_HEIGHT);
@@ -133,7 +130,7 @@ static void text_update_proc(Layer *layer, GContext *ctx) {
 
   clock_copy_time_string(time_buffer, sizeof(time_buffer));
 
-  graphics_context_set_text_color(ctx, GColorGreen);
+  graphics_context_set_text_color(ctx, GColorMintGreen);
   graphics_draw_text(ctx, time_buffer, font, bounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 }
 
@@ -192,7 +189,6 @@ static void window_load(Window *window) {
   GRect window_bounds = layer_get_bounds(window_layer);
   GRect image_bounds = GRect(0, 0, 60, 70);
   grect_align(&image_bounds, &window_bounds, GAlignBottomRight, true);
-  
 
   // s_center = grect_center_point(&window_bounds);
   s_center = GPoint(FINAL_RADIUS + HAND_MARGIN, FINAL_RADIUS + HAND_MARGIN);
@@ -215,7 +211,7 @@ static void window_load(Window *window) {
 static void window_unload(Window *window) {
   gbitmap_destroy(s_pipboy_bitmap);
   bitmap_layer_destroy(s_pipboy_layer);
-  
+
   layer_destroy(s_canvas_layer);
 }
 
