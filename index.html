@@ -25,7 +25,7 @@
       <div class="item-container-header">Display</div>
       <div class="item-container-content">
         <label class="item">
-          Analog or digital
+          Analog face
           <input type="checkbox" class="item-toggle" id="face_mode" checked>
         </label>
         <label class="item">
@@ -42,8 +42,7 @@
   </body>
 
   <script type="text/javascript">
-
-      // Get query variables
+    // Get query variables
     function getQueryParam(variable, defaultValue) {
       // Find all URL parameters
       var query = location.search.substring(1);
@@ -59,7 +58,6 @@
       return defaultValue || false;
     }
 
-    //Setup to allow easy adding more options later
     function saveOptions() {
       var faceMode = document.getElementById("face_mode");
       var showGifs = document.getElementById("show_gifs");
@@ -83,7 +81,20 @@
         var location = return_to + encodeURIComponent(JSON.stringify(options));
 
         document.location = location;
-      },
-    false);
+      }, false);
+
+    function loadOptions() {
+      var options = getQueryParam("options", "{}");
+      options = JSON.parse(options);
+      var faceMode = document.getElementById("face_mode");
+      var showGifs = document.getElementById("show_gifs");
+
+      faceMode.checked = (options.faceMode === "on");
+      showGifs.checked = (options.showGifs === "on");
+
+      return;
+    };
+    loadOptions();
+
   </script>
 </html>
