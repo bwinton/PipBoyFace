@@ -4,6 +4,12 @@
     <meta charset="utf-8" />
     <title>PipBoyFace Settings</title>
     <link rel="stylesheet" href="bower_components/pebble-slate/dist/css/slate.css"/>
+    <style media="screen">
+    .item-styled-toggle-wrapper,
+    .item-styled-toggle {
+      transition-duration: 0.1s;
+    }
+    </style>
     <!-- <link rel="stylesheet" href="styles.css" /> -->
     <!-- <link rel="shortcut icon" href="/favicon.ico" /> -->
     <script src="bower_components/pebble-slate/dist/js/slate.js" charset="utf-8"></script>
@@ -13,6 +19,19 @@
       <div class="item-container-header">PipBoyFace Settings</div>
       <div class="item-container-content">
         <div class="item">These are the settings for the PipBoyFace Pebble watchface.</div>
+      </div>
+    </div>
+    <div class="item-container">
+      <div class="item-container-header">Display</div>
+      <div class="item-container-content">
+        <label class="item">
+          Analog or digital
+          <input type="checkbox" class="item-toggle" name="time-style" checked>
+        </label>
+        <label class="item">
+          Shake to show gifs
+          <input type="checkbox" class="item-toggle" name="show-gifs" checked>
+        </label>
       </div>
     </div>
     <div class="item-container">
