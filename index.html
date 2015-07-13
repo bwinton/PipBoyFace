@@ -26,18 +26,64 @@
       <div class="item-container-content">
         <label class="item">
           Analog or digital
-          <input type="checkbox" class="item-toggle" name="time-style" checked>
+          <input type="checkbox" class="item-toggle" id="face_mode" checked>
         </label>
         <label class="item">
           Shake to show gifs
-          <input type="checkbox" class="item-toggle" name="show-gifs" checked>
+          <input type="checkbox" class="item-toggle" id="show_gifs" checked>
         </label>
       </div>
     </div>
     <div class="item-container">
       <div class="button-container">
-        <input type="button" class="item-button" value="SAVE">
+        <input type="button" class="item-button" id="save_button" value="SAVE">
       </div>
     </div>
   </body>
+
+  <script type="text/javascript">
+
+      // Get query variables
+    function getQueryParam(variable, defaultValue) {
+      // Find all URL parameters
+      var query = location.search.substring(1);
+      var vars = query.split('&');
+      for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split('=');
+
+        // If the query variable parameter is found, decode it to use and return it for use
+        if (pair[0] === variable) {
+          return decodeURIComponent(pair[1]);
+        }
+      }
+      return defaultValue || false;
+    }
+
+    //Setup to allow easy adding more options later
+    function saveOptions() {
+      var faceMode = document.getElementById("face_mode");
+      var showGifs = document.getElementById("show_gifs");
+
+      var options = {
+        "faceMode": faceMode.checked ? "on" : "off",
+        "showGifs": showGifs.checked ? "on" : "off"
+      }
+
+      return options;
+    };
+
+    var submitButton = document.getElementById("save_button");
+    submitButton.addEventListener("click",
+      function() {
+        console.log("Submit");
+
+        var options = saveOptions();
+        // Set the return URL depending on the runtime environment
+        var return_to = getQueryParam('return_to', 'pebblejs://close#');
+        var location = return_to + encodeURIComponent(JSON.stringify(options));
+
+        document.location = location;
+      },
+    false);
+  </script>
 </html>
