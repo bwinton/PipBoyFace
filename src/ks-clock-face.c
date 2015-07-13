@@ -11,9 +11,12 @@
 
 #define ANIMATION_DURATION 500
 #define ANIMATION_DELAY    600
-
+  
 #define TEXT_MODE 1
 #define CIRCLE_MODE 2
+  
+#define FACE_MODE 0
+#define SHOW_GIFS 1
 
 typedef struct {
   int hours;
@@ -29,10 +32,52 @@ static BitmapLayer *s_pipboy_layer;
 
 static GPoint s_center;
 static Time s_last_time, s_anim_time;
-static int s_radius = 0, s_anim_hours_60 = 0;
+static int s_radius = 0;
 static bool s_animating = false;
 
 static int face_mode = TEXT_MODE;
+static bool show_gifs = false;
+
+/******************************** Configuration *******************************/
+
+static void in_recv_handler(DictionaryIterator *iterator, void *context)
+{
+  //Get Tuple
+  Tuple *t = dict_read_first(iterator);
+  if(t)
+  {
+    switch(t->key)
+    {
+    case FACE_MODE:
+      //It's the FACE_MODE key
+      if(strcmp(t->value->cstring, "on") == 0)
+      {
+        face_mode = FACE_MODE;
+      }
+      else if(strcmp(t->value->cstring, "off") == 0)
+      {
+        face_mode = CIRCLE_MODE;
+      }
+      persist_write_int(FACE_MODE, face_mode);
+      if (s_canvas_layer) {
+        layer_mark_dirty(s_canvas_layer);  
+      }
+      break;
+    case SHOW_GIFS:
+      //It's the SHOW_GIFS key
+      if(strcmp(t->value->cstring, "on") == 0)
+      {
+        show_gifs = true;
+      }
+      else if(strcmp(t->value->cstring, "off") == 0)
+      {
+        show_gifs = false;
+      }
+      persist_write_bool(SHOW_GIFS, show_gifs);
+      break;
+    }
+  }
+}
 
 /*************************** AnimationImplementation **************************/
 
@@ -73,9 +118,6 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   } else {
     face_mode = TEXT_MODE;
   }
-  if (s_canvas_layer) {
-    layer_mark_dirty(s_canvas_layer);
-  }
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -101,6 +143,8 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   if(s_canvas_layer) {
     layer_mark_dirty(s_canvas_layer);
   }
+  APP_LOG(APP_LOG_LEVEL_WARNING, "%d %d", FACE_MODE, SHOW_GIFS);
+
 }
 
 static int hours_to_minutes(int hours_out_of_12) {
@@ -116,13 +160,16 @@ static void draw_background(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorIslamicGreen);
     graphics_context_set_stroke_width(ctx, 1);
     for (int i = 0; i < 168; i+=4) {
-      graphics_draw_rect(ctx, GRect(-1, i, 146, 2));
+      graphics_draw_rect(ctx, GRect(0, i, 144, 2));
     }
   }
 }
 
 static void text_update_proc(Layer *layer, GContext *ctx) {
+//   GFont font = fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21);
+//   GFont font = fonts_get_system_font(FONT_KEY_LECO_38_BOLD_NUMBERS);
   GFont font = s_monofonto_38;
+  
 
   GRect layer_bounds = layer_get_bounds(layer);
   GRect bounds = GRect(MARGIN, MARGIN/2, layer_bounds.size.w - 2 * MARGIN, TEXT_HEIGHT);
@@ -130,7 +177,7 @@ static void text_update_proc(Layer *layer, GContext *ctx) {
 
   clock_copy_time_string(time_buffer, sizeof(time_buffer));
 
-  graphics_context_set_text_color(ctx, GColorMintGreen);
+  graphics_context_set_text_color(ctx, GColorGreen);
   graphics_draw_text(ctx, time_buffer, font, bounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 }
 
@@ -189,6 +236,7 @@ static void window_load(Window *window) {
   GRect window_bounds = layer_get_bounds(window_layer);
   GRect image_bounds = GRect(0, 0, 60, 70);
   grect_align(&image_bounds, &window_bounds, GAlignBottomRight, true);
+  
 
   // s_center = grect_center_point(&window_bounds);
   s_center = GPoint(FINAL_RADIUS + HAND_MARGIN, FINAL_RADIUS + HAND_MARGIN);
@@ -211,7 +259,7 @@ static void window_load(Window *window) {
 static void window_unload(Window *window) {
   gbitmap_destroy(s_pipboy_bitmap);
   bitmap_layer_destroy(s_pipboy_layer);
-
+  
   layer_destroy(s_canvas_layer);
 }
 
@@ -238,6 +286,13 @@ static void init() {
   srand(time(NULL));
 
   s_monofonto_38 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_38));
+
+  app_message_register_inbox_received((AppMessageInboxReceived) in_recv_handler);
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  
+  face_mode = persist_read_int(FACE_MODE);
+  show_gifs = persist_read_bool(SHOW_GIFS);
+  
 
   time_t t = time(NULL);
   struct tm *time_now = localtime(&t);
