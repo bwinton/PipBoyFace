@@ -63,8 +63,8 @@
       var showGifs = document.getElementById("show_gifs");
 
       var options = {
-        "faceMode": faceMode.checked ? "on" : "off",
-        "showGifs": showGifs.checked ? "on" : "off"
+        "faceMode": faceMode.checked ? 1 : 2,
+        "showGifs": showGifs.checked
       }
 
       localStorage.faceMode = options.faceMode;
@@ -97,8 +97,8 @@
       var faceMode = document.getElementById("face_mode");
       var showGifs = document.getElementById("show_gifs");
 
-      faceMode.checked = (options.faceMode === "on");
-      showGifs.checked = (options.showGifs === "on");
+      faceMode.checked = (options.faceMode === 1);
+      showGifs.checked = options.showGifs;
 
       return;
     };
