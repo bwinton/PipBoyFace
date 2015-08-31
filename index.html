@@ -67,6 +67,9 @@
         "showGifs": showGifs.checked ? "on" : "off"
       }
 
+      localStorage.faceMode = options.faceMode;
+      localStorage.showGifs = options.showGifs;
+
       return options;
     };
 
@@ -84,7 +87,12 @@
       }, false);
 
     function loadOptions() {
-      var options = getQueryParam("options", "{}");
+      var options = {};
+      if (localStorage.faceMode) {
+        options.faceMode = localStorage.faceMode;
+        options.showGifs = localStorage.showGifs;
+      }
+      options = getQueryParam("options", JSON.stringify(options));
       options = JSON.parse(options);
       var faceMode = document.getElementById("face_mode");
       var showGifs = document.getElementById("show_gifs");
