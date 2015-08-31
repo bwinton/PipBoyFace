@@ -11,10 +11,10 @@
 
 #define ANIMATION_DURATION 500
 #define ANIMATION_DELAY    600
-  
+
 #define TEXT_MODE 1
 #define CIRCLE_MODE 2
-  
+
 #define FACE_MODE 0
 #define SHOW_GIFS 1
 
@@ -43,39 +43,20 @@ static bool show_gifs = false;
 static void in_recv_handler(DictionaryIterator *iterator, void *context)
 {
   //Get Tuple
-  Tuple *t = dict_read_first(iterator);
-  if(t)
-  {
-    switch(t->key)
-    {
-    case FACE_MODE:
-      //It's the FACE_MODE key
-      if(strcmp(t->value->cstring, "on") == 0)
-      {
-        face_mode = FACE_MODE;
-      }
-      else if(strcmp(t->value->cstring, "off") == 0)
-      {
-        face_mode = CIRCLE_MODE;
-      }
-      persist_write_int(FACE_MODE, face_mode);
-      if (s_canvas_layer) {
-        layer_mark_dirty(s_canvas_layer);  
-      }
-      break;
-    case SHOW_GIFS:
-      //It's the SHOW_GIFS key
-      if(strcmp(t->value->cstring, "on") == 0)
-      {
-        show_gifs = true;
-      }
-      else if(strcmp(t->value->cstring, "off") == 0)
-      {
-        show_gifs = false;
-      }
-      persist_write_bool(SHOW_GIFS, show_gifs);
-      break;
+  Tuple *face_mode_t = dict_find(iterator, FACE_MODE);
+  Tuple *show_gifs_t = dict_find(iterator, SHOW_GIFS);
+
+  if (face_mode_t) {
+    face_mode = face_mode_t->value->int8;
+    persist_write_int(FACE_MODE, face_mode);
+    if (s_canvas_layer) {
+      layer_mark_dirty(s_canvas_layer);
     }
+  }
+
+  if (show_gifs_t) {
+    show_gifs = show_gifs_t->value->int8;
+    persist_write_bool(SHOW_GIFS, show_gifs);
   }
 }
 
@@ -169,7 +150,7 @@ static void text_update_proc(Layer *layer, GContext *ctx) {
 //   GFont font = fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21);
 //   GFont font = fonts_get_system_font(FONT_KEY_LECO_38_BOLD_NUMBERS);
   GFont font = s_monofonto_38;
-  
+
 
   GRect layer_bounds = layer_get_bounds(layer);
   GRect bounds = GRect(MARGIN, MARGIN/2, layer_bounds.size.w - 2 * MARGIN, TEXT_HEIGHT);
@@ -217,7 +198,7 @@ static void circle_update_proc(Layer *layer, GContext *ctx) {
   // Draw hands with positive length only
   if(s_radius > 2 * HAND_MARGIN) {
     graphics_draw_line(ctx, s_center, hour_hand);
-  } 
+  }
   if(s_radius > HAND_MARGIN) {
     graphics_draw_line(ctx, s_center, minute_hand);
   }
@@ -236,7 +217,7 @@ static void window_load(Window *window) {
   GRect window_bounds = layer_get_bounds(window_layer);
   GRect image_bounds = GRect(0, 0, 60, 70);
   grect_align(&image_bounds, &window_bounds, GAlignBottomRight, true);
-  
+
 
   // s_center = grect_center_point(&window_bounds);
   s_center = GPoint(FINAL_RADIUS + HAND_MARGIN, FINAL_RADIUS + HAND_MARGIN);
@@ -259,7 +240,7 @@ static void window_load(Window *window) {
 static void window_unload(Window *window) {
   gbitmap_destroy(s_pipboy_bitmap);
   bitmap_layer_destroy(s_pipboy_layer);
-  
+
   layer_destroy(s_canvas_layer);
 }
 
@@ -289,10 +270,10 @@ static void init() {
 
   app_message_register_inbox_received((AppMessageInboxReceived) in_recv_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-  
+
   face_mode = persist_read_int(FACE_MODE);
   show_gifs = persist_read_bool(SHOW_GIFS);
-  
+
 
   time_t t = time(NULL);
   struct tm *time_now = localtime(&t);
