@@ -25,8 +25,11 @@
       <div class="item-container-header">Display</div>
       <div class="item-container-content">
         <label class="item">
-          Analog face
-          <input type="checkbox" class="item-toggle" id="face_mode" checked>
+          Face
+          <select id="face_mode" class="item-select">
+            <option class="item-select-option" value="2">Analog</option>
+            <option class="item-select-option" value="1" selected>Digital</option>
+          </select>
         </label>
         <label class="item">
           Shake to show gifs
@@ -63,7 +66,7 @@
       var showGifs = document.getElementById("show_gifs");
 
       var options = {
-        "faceMode": faceMode.checked ? 1 : 2,
+        "faceMode": +faceMode.value,
         "showGifs": showGifs.checked
       }
 
@@ -97,7 +100,7 @@
       var faceMode = document.getElementById("face_mode");
       var showGifs = document.getElementById("show_gifs");
 
-      faceMode.checked = (options.faceMode === 1);
+      faceMode.value = options.faceMode;
       showGifs.checked = options.showGifs;
 
       return;
