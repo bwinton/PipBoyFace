@@ -5,27 +5,37 @@ Slate is a front-end framework for developing Pebble mobile configuration pages.
 It's the fastest way to make a clean UI for a Pebble app's mobile configuration
 page.
 
+![screenshot](https://raw.githubusercontent.com/pebble/slate/master/docs/assets/screenshot.png)
+
 Getting Started
 ---------------
+
+### Getting Slate
 
 There are only four files that makeup the Slate framework, a CSS file and a
 JavaScript file, and two fonts.
 
 There are two quick ways to getting started with Slate.
 
-### Via Download
+#### Via Download
 
-The CSS and JS files and fonts are also avaliable via download.
+The CSS and JS files and fonts are also available via download.
 
-[Download Slate 0.0.1 >](https://github.com/pebble/slate/archive/v0.0.1.zip)
+[Download Slate 0.0.3 >](https://github.com/pebble/slate/archive/v0.0.3.zip)
 
-### Via Bower
+#### Via Bower
 
 The CSS and JS files and fonts are also avaliable via Bower.
 
 ```bash
 bower install pebble-slate
 ```
+
+### Zepto.js
+
+Slate is also bundled with [Zepto.js](https://github.com/madrobby/zepto), which
+is "a minimalist JavaScript library for modern browsers with a largely
+jQuery-compatible API."
 
 Documentation
 -------------
@@ -73,7 +83,7 @@ Here is a list of the different components you can create with Slate.
 
 ### Toggles and Selects
 
-![toggles and select](https://raw.githubusercontent.com/pebble/slate/master/docs/assets/slate-slate-toggle.png)
+![toggles and select](https://raw.githubusercontent.com/pebble/slate/master/docs/assets/slate-toggle.png)
 
 ```html
 <div class="item-container">
