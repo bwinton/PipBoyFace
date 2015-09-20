@@ -12,9 +12,16 @@
     "resources": {
         "media": [
             {
-                "file": "images/pipboy2.png",
-                "name": "PIPBOY_OUTLINE",
-                "type": "png"
+                "characterRegex": "[0-9:A-Za-z\u00b0 ]",
+                "file": "fonts/monofonto.ttf",
+                "name": "MONOFONTO_16",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[0-9:A-Za-z\u00b0 ]",
+                "file": "fonts/monofonto.ttf",
+                "name": "MONOFONTO_38",
+                "type": "font"
             },
             {
                 "file": "images/pipboy-icon.png",
@@ -23,10 +30,9 @@
                 "type": "png"
             },
             {
-                "characterRegex": "[0-9:A-Za-z\u00b0 ]",
-                "file": "fonts/monofonto.ttf",
-                "name": "MONOFONTO_38",
-                "type": "font"
+                "file": "images/pipboy2.png",
+                "name": "PIPBOY_OUTLINE",
+                "type": "png"
             }
         ]
     },

@@ -26,7 +26,9 @@ typedef struct {
 static Window *s_main_window;
 static Layer *s_canvas_layer;
 
-static GFont s_monofonto_38;
+static GFont s_time_font;
+static GFont s_date_font;
+
 static GBitmap *s_pipboy_bitmap;
 static BitmapLayer *s_pipboy_layer;
 
@@ -124,7 +126,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   if(s_canvas_layer) {
     layer_mark_dirty(s_canvas_layer);
   }
-  APP_LOG(APP_LOG_LEVEL_WARNING, "%d %d", FACE_MODE, SHOW_GIFS);
+  APP_LOG(APP_LOG_LEVEL_WARNING, "Tick!  %d %d", FACE_MODE, SHOW_GIFS);
 
 }
 
@@ -147,19 +149,23 @@ static void draw_background(Layer *layer, GContext *ctx) {
 }
 
 static void text_update_proc(Layer *layer, GContext *ctx) {
-//   GFont font = fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21);
-//   GFont font = fonts_get_system_font(FONT_KEY_LECO_38_BOLD_NUMBERS);
-  GFont font = s_monofonto_38;
-
-
   GRect layer_bounds = layer_get_bounds(layer);
   GRect bounds = GRect(MARGIN, MARGIN/2, layer_bounds.size.w - 2 * MARGIN, TEXT_HEIGHT);
   char time_buffer[16];
-
   clock_copy_time_string(time_buffer, sizeof(time_buffer));
 
   graphics_context_set_text_color(ctx, GColorGreen);
-  graphics_draw_text(ctx, time_buffer, font, bounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+  graphics_draw_text(ctx, time_buffer, s_time_font, bounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
+
+  // Get a tm structure
+  time_t temp = time(NULL); 
+  struct tm *tick_time = localtime(&temp);
+
+  // Copy date into buffer from tm structure
+  strftime(time_buffer, sizeof(time_buffer), "%a %d %b", tick_time);
+  
+  bounds = GRect(MARGIN, MARGIN * 2.5 + TEXT_HEIGHT, layer_bounds.size.w - 2 * MARGIN, TEXT_HEIGHT);
+  graphics_draw_text(ctx, time_buffer, s_date_font, bounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentRight, NULL);
 }
 
 static void circle_update_proc(Layer *layer, GContext *ctx) {
@@ -266,7 +272,8 @@ static void hands_update(Animation *anim, AnimationProgress dist_normalized) {
 static void init() {
   srand(time(NULL));
 
-  s_monofonto_38 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_38));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_38));
+  s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_16));
 
   app_message_register_inbox_received((AppMessageInboxReceived) in_recv_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
@@ -302,7 +309,8 @@ static void init() {
 }
 
 static void deinit() {
-  fonts_unload_custom_font(s_monofonto_38);
+  fonts_unload_custom_font(s_time_font);
+  fonts_unload_custom_font(s_date_font);
   window_destroy(s_main_window);
 }
 
