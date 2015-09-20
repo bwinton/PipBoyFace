@@ -40,6 +40,8 @@ static bool s_animating = false;
 static int face_mode = TEXT_MODE;
 static bool show_gifs = false;
 
+static int s_battery_level;
+
 /******************************** Configuration *******************************/
 
 static void in_recv_handler(DictionaryIterator *iterator, void *context)
@@ -137,6 +139,7 @@ static int hours_to_minutes(int hours_out_of_12) {
 static void draw_background(Layer *layer, GContext *ctx) {
   // Color background?
   if(COLORS) {
+    // Draw the TV stripes.
     graphics_context_set_fill_color(ctx, GColorBlack);
     graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
 
@@ -145,6 +148,21 @@ static void draw_background(Layer *layer, GContext *ctx) {
     for (int i = 0; i < 168; i+=4) {
       graphics_draw_rect(ctx, GRect(0, i, 144, 2));
     }
+    
+    // Draw the battery meter.
+   
+    GRect bounds = GRect(MARGIN, 168 - 2 * MARGIN, 72 - MARGIN, MARGIN);
+
+    // Find the width of the bar
+    int width = (int)(float)(((float)s_battery_level / 100.0F) * bounds.size.w);
+  
+    // Draw the background
+    graphics_context_set_fill_color(ctx, GColorBlack);
+    graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+  
+    // Draw the bar
+    graphics_context_set_fill_color(ctx, GColorGreen);
+    graphics_fill_rect(ctx, GRect(bounds.origin.x, bounds.origin.y, width, bounds.size.h), 0, GCornerNone);
   }
 }
 
@@ -252,6 +270,12 @@ static void window_unload(Window *window) {
 
 /*********************************** App **************************************/
 
+static void battery_callback(BatteryChargeState state) {
+  // Record the new battery level
+  s_battery_level = state.charge_percent;
+  layer_mark_dirty(s_canvas_layer);
+}
+
 static int anim_percentage(AnimationProgress dist_normalized, int max) {
   return (int)(float)(((float)dist_normalized / (float)ANIMATION_NORMALIZED_MAX) * (float)max);
 }
@@ -272,6 +296,10 @@ static void hands_update(Animation *anim, AnimationProgress dist_normalized) {
 static void init() {
   srand(time(NULL));
 
+  // Register for battery level updates
+  battery_state_service_subscribe(battery_callback);
+  s_battery_level = battery_state_service_peek().charge_percent;
+
   s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_38));
   s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_16));
 
@@ -280,7 +308,6 @@ static void init() {
 
   face_mode = persist_read_int(FACE_MODE);
   show_gifs = persist_read_bool(SHOW_GIFS);
-
 
   time_t t = time(NULL);
   struct tm *time_now = localtime(&t);
@@ -311,6 +338,7 @@ static void init() {
 static void deinit() {
   fonts_unload_custom_font(s_time_font);
   fonts_unload_custom_font(s_date_font);
+  battery_state_service_unsubscribe();
   window_destroy(s_main_window);
 }
 
