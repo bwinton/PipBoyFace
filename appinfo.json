@@ -14,13 +14,13 @@
             {
                 "characterRegex": "[0-9:A-Za-z\u00b0 ]",
                 "file": "fonts/monofonto.ttf",
-                "name": "MONOFONTO_16",
+                "name": "MONOFONTO_46",
                 "type": "font"
             },
             {
                 "characterRegex": "[0-9:A-Za-z\u00b0 ]",
                 "file": "fonts/monofonto.ttf",
-                "name": "MONOFONTO_38",
+                "name": "MONOFONTO_24",
                 "type": "font"
             },
             {
@@ -42,7 +42,7 @@
         "basalt"
     ],
     "uuid": "bb2e3312-6cca-4936-a937-16b1310f52e1",
-    "versionLabel": "1.0",
+    "versionLabel": "1.1",
     "watchapp": {
         "watchface": true
     }

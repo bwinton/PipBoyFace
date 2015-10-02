@@ -40,7 +40,7 @@ static bool s_animating = false;
 static int face_mode = TEXT_MODE;
 static bool show_gifs = false;
 
-static int s_battery_level;
+static int s_battery_level = -2;
 
 /******************************** Configuration *******************************/
 
@@ -92,32 +92,6 @@ static void animate(int duration, int delay, AnimationImplementation *implementa
 /************************************ UI **************************************/
 
 
-static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  APP_LOG(APP_LOG_LEVEL_WARNING, "UP ARROW PRESSED!");
-}
-
-static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  APP_LOG(APP_LOG_LEVEL_WARNING, "SELECT PRESSED!  %d", face_mode);
-  if (face_mode == CIRCLE_MODE) {
-    face_mode = TEXT_MODE;
-  } else {
-    face_mode = TEXT_MODE;
-  }
-}
-
-static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-  APP_LOG(APP_LOG_LEVEL_WARNING, "UP ARROW PRESSED!");
-}
-
-static void click_config_provider(void *context) {
-  // Register the ClickHandlers
-  APP_LOG(APP_LOG_LEVEL_WARNING, "CONFIGURING CLICKS!");
-
-  window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-  window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
-}
-
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   // Store time
   s_last_time.hours = tick_time->tm_hour;
@@ -150,19 +124,23 @@ static void draw_background(Layer *layer, GContext *ctx) {
     }
     
     // Draw the battery meter.
-   
     GRect bounds = GRect(MARGIN, 168 - 2 * MARGIN, 72 - MARGIN, MARGIN);
-
-    // Find the width of the bar
-    int width = (int)(float)(((float)s_battery_level / 100.0F) * bounds.size.w);
-  
     // Draw the background
     graphics_context_set_fill_color(ctx, GColorBlack);
-    graphics_fill_rect(ctx, bounds, 0, GCornerNone);
-  
-    // Draw the bar
-    graphics_context_set_fill_color(ctx, GColorGreen);
-    graphics_fill_rect(ctx, GRect(bounds.origin.x, bounds.origin.y, width, bounds.size.h), 0, GCornerNone);
+    graphics_fill_rect(ctx, bounds, 2, GCornersAll);
+    int width = bounds.size.w - 2;
+
+    if (s_battery_level >= 0) {
+      // Find the width of the bar
+      width = (int)(float)(((float)s_battery_level / 100.0F) * width);
+    
+      // Draw the bar
+      graphics_context_set_fill_color(ctx, GColorGreen);
+    } else {
+      // Draw the bar
+      graphics_context_set_fill_color(ctx, GColorPictonBlue);
+    }
+    graphics_fill_rect(ctx, GRect(bounds.origin.x + 1, bounds.origin.y + 1, width, bounds.size.h - 2), 2, GCornersAll);         
   }
 }
 
@@ -239,7 +217,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect window_bounds = layer_get_bounds(window_layer);
-  GRect image_bounds = GRect(0, 0, 60, 70);
+  GRect image_bounds = GRect(0, 0, 80, 94);
   grect_align(&image_bounds, &window_bounds, GAlignBottomRight, true);
 
 
@@ -266,14 +244,23 @@ static void window_unload(Window *window) {
   bitmap_layer_destroy(s_pipboy_layer);
 
   layer_destroy(s_canvas_layer);
+  s_canvas_layer = NULL;
 }
 
 /*********************************** App **************************************/
 
 static void battery_callback(BatteryChargeState state) {
   // Record the new battery level
-  s_battery_level = state.charge_percent;
-  layer_mark_dirty(s_canvas_layer);
+  int newLevel = -1;
+  if (!state.is_charging) {
+    newLevel = state.charge_percent;
+  }
+  if (s_battery_level != newLevel) {
+    s_battery_level = newLevel;
+    if (s_canvas_layer) {
+      layer_mark_dirty(s_canvas_layer);
+    }
+  }
 }
 
 static int anim_percentage(AnimationProgress dist_normalized, int max) {
@@ -298,10 +285,10 @@ static void init() {
 
   // Register for battery level updates
   battery_state_service_subscribe(battery_callback);
-  s_battery_level = battery_state_service_peek().charge_percent;
+  battery_callback(battery_state_service_peek());
 
-  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_38));
-  s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_16));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_46));
+  s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_MONOFONTO_24));
 
   app_message_register_inbox_received((AppMessageInboxReceived) in_recv_handler);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
@@ -318,7 +305,6 @@ static void init() {
     .load = window_load,
     .unload = window_unload,
   });
-  window_set_click_config_provider(s_main_window, click_config_provider);
   window_stack_push(s_main_window, true);
 
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
